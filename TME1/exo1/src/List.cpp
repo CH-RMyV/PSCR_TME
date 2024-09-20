@@ -1,4 +1,4 @@
-
+#include "List.h"
 namespace pr {
 
 // ******************* Chainon
@@ -12,7 +12,7 @@ size_t Chainon::length() {
 	return length();
 }
 
-void Chainon::print (std::ostream & os) {
+void Chainon::print (std::ostream & os) const {
 	os << data ;
 	if (next != nullptr) {
 		os << ", ";
@@ -45,7 +45,7 @@ void List::push_front (const std::string& val) {
 	tete = new Chainon(val,tete);
 }
 
-bool empty() {
+bool List::empty() {
 	return tete == nullptr;
 }
 
@@ -57,7 +57,7 @@ size_t List::size() const {
 	}
 }
 
-} // namespace pr
+
 
 std::ostream & operator<< (std::ostream & os, const pr::List & vec)
 {
@@ -68,4 +68,4 @@ std::ostream & operator<< (std::ostream & os, const pr::List & vec)
 	os << "]";
 	return os;
 }
-
+}	//fin Namespace pr
