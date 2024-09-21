@@ -27,14 +27,10 @@ int main () {
 	std::cout << "Taille : " << list.size() << std::endl;
 
 	// Affiche à l'envers
-	for (i= list.size() - 1 ; i >= 0 ; i--) {
-		std::cout << "elt " << i << ": " << list[i] << std::endl;
+	for (i= list.size(); i > 1 ; i--) {
+		std::cout << "elt " << i << ": " << list[i-1] << std::endl;
 	}
 	
-	// liberer les char de la chaine
-	for (char *cp = str ; *cp ; cp++) {
-		delete cp;
-	}
 	// et la chaine elle meme
 	delete[] str;
 

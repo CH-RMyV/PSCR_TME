@@ -5,19 +5,18 @@ namespace pr {
 Chainon::Chainon (const std::string & data, Chainon * next):data(data),next(next) {};
 
 size_t Chainon::length() {
-	size_t len = 1;
-	if (next != nullptr) {
-		len += next->length();
+	if (next == nullptr) {
+		return 1;
 	}
-	return length();
+	return 1+next->length();
 }
 
 void Chainon::print (std::ostream & os) const {
 	os << data ;
 	if (next != nullptr) {
 		os << ", ";
+		next->print(os);
 	}
-	next->print(os);
 }
 
 // ******************  List
