@@ -5,6 +5,8 @@
 #include <chrono>
 #include <vector>
 #include <string>
+#include "hashmap.hpp"
+
 
 
 int isPresent(const std::vector<std::pair<std::string, uint32_t>> &vec, const std::string &str)
@@ -21,6 +23,16 @@ int isPresent(const std::vector<std::pair<std::string, uint32_t>> &vec, const st
 int main () {
 	using namespace std;
 	using namespace std::chrono;
+	using namespace tme2;
+
+	Hashmap<int, int> test(10);
+	int* testget;
+	test.put(1, 50);
+	testget = test.get(1);
+	testget = test.get(0);
+	test.put(2, 45);
+	test.put(1, 40);
+
 
 	ifstream input = ifstream("WarAndPeace.txt");
 	int rank;
