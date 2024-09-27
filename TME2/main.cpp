@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <regex>
@@ -7,6 +8,7 @@
 
 
 int isPresent(const std::vector<std::pair<std::string, uint32_t>> &vec, const std::string &str)
+/*Renvoie -1 si non trouvé, renvoie l'indice du mot si trouvé*/
 {
 	int i;
 	for(i = 0; i<vec.size(); ++i)
