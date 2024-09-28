@@ -27,11 +27,13 @@ int main () {
 
 	Hashmap<int, int> test(10);
 	int* testget;
-	test.put(1, 50);
-	testget = test.get(1);
+	test.put(638746, 50);
+	testget = test.get(638746);
 	testget = test.get(0);
-	test.put(2, 45);
-	test.put(1, 40);
+	test.put(28000, 45);
+	test.put(76452, 40);
+	test.put(4736958, 612);
+	test.grow();
 
 
 	ifstream input = ifstream("WarAndPeace.txt");

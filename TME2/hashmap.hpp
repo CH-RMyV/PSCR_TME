@@ -49,7 +49,7 @@ namespace tme2
             bool put(const K &key, const V &value)
             {
                 size_t h = std::hash<K>()(key)%capacity;
-                std::forward_list<Entry> loc = bucket[h];
+
                 for(auto& entry:bucket[h])
                 {
                     if(entry._key == key)
@@ -69,6 +69,20 @@ namespace tme2
                 }*/
                 bucket[h].push_front(Entry(key, value));
                 return false;
+            }
+
+            void grow()
+            {
+                Hashmap tmp = Hashmap(capacity*2);
+                for(auto& list:bucket)
+                {
+                    for(auto& ent:list)
+                    {
+                        tmp.put(ent._key, ent._value);
+                    }
+                }
+                bucket = tmp.bucket;
+                capacity*=2;
             }
 
 
