@@ -7,41 +7,36 @@
 #include <string>
 #include "hashmap.hpp"
 
-
-
-int isPresent(const std::vector<std::pair<std::string, uint32_t>> &vec, const std::string &str)
-/*Renvoie -1 si non trouvé, renvoie l'indice du mot si trouvé*/
+template <typename iterator>
+size_t count(iterator begin, iterator end)
 {
-	int i;
-	for(i = 0; i<vec.size(); ++i)
-	{
-		if(str == std::get<0>(vec[i])) return i;
-	}
-	return -1;
+	size_t i = 0;
+	for(;begin!=end;++begin)++i;
+	return i;
 }
+
+template <typename iterator, typename T>
+size_t count_if_equal(iterator begin, iterator end, const T &val)
+{
+	size_t i = 0;
+	for(;begin!=end;++begin)i+=(*begin==val);
+	return i;
+}
+
+
 
 int main () {
 	using namespace std;
 	using namespace std::chrono;
 	using namespace tme2;
 
-	Hashmap<int, int> test(10);
-	int* testget;
-	test.put(638746, 50);
-	testget = test.get(638746);
-	testget = test.get(0);
-	test.put(28000, 45);
-	test.put(76452, 40);
-	test.put(4736958, 612);
-	test.grow();
-
-
 	ifstream input = ifstream("WarAndPeace.txt");
-	int rank;
-	vector<pair<string, uint32_t>> mots;
+
+	Hashmap<string, int> mots(32768);
+	int* found;
 
 	auto start = steady_clock::now();
-	cout << "Parsing War and Peace" << endl;
+	std::cout << "Parsing War and Peace" << endl;
 
 	size_t nombre_lu = 0;
 	// prochain mot lu
@@ -53,8 +48,18 @@ int main () {
 		word = regex_replace ( word, re, "");
 		// passe en lowercase
 		transform(word.begin(),word.end(),word.begin(),::tolower);
+		found = mots.get(word);
+		if(!found)
+		{
+			mots.put(word, 1);
+		}
+		else
+		{
+			*found += 1;
+		}
+		
 
-		rank = isPresent(mots, word);
+		/*rank = isPresent(mots, word);
 		if(rank==-1)
 		{
 			pair<string, uint32_t> newWord = make_pair(word, 1);
@@ -63,26 +68,34 @@ int main () {
 		else
 		{
 			mots[rank] = make_pair(word, get<1>(mots[rank])+1);
-		}
+		}*/
 
 		// word est maintenant "tout propre"
-		if (nombre_lu % 100 == 0)
+		/*if (nombre_lu % 100 == 0)
 			// on affiche un mot "propre" sur 100
-			cout << nombre_lu << ": "<< word << endl;
-		nombre_lu++;
+			std::cout << nombre_lu << ": "<< word << endl;
+		nombre_lu++;*/
 	}
 	input.close();
 
-	cout << "Finished Parsing War and Peace" << endl;
+	std::cout << "Finished Parsing War and Peace" << endl;
 
 	auto end = steady_clock::now();
-    cout << "Parsing took "
+    std::cout << "Parsing took "
               << duration_cast<milliseconds>(end - start).count()
               << "ms.\n";
 
+	//std::vector<std::pair<std::string, int>> mots_freq;
+	//mots_freq.reserve(mots.get_elements());
+	// question 7 sautée
+
     cout << "Found a total of " << nombre_lu << " words." << endl;
 
-	cout << "found a total of " << mots.size() << " different words." << endl;
+	cout << "found a total of " << mots.get_elements() << " different words." << endl;
+
+	cout << "war : " << (mots.get("war") ? *mots.get("war") : 0) << endl;
+	cout << "peace : " << (mots.get("peace") ? *mots.get("peace") : 0) << endl;
+	cout << "toto : " << (mots.get("toto") ? *mots.get("toto") : 0) << endl;
 
     return 0;
 }

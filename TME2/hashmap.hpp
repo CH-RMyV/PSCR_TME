@@ -8,6 +8,10 @@ namespace tme2
     template <typename K, typename V>
     class Hashmap
     {
+        class iterator
+        {
+
+        };
 
         class Entry
         {
@@ -24,18 +28,19 @@ namespace tme2
 
         buckets_t bucket;
         size_t capacity;
+        size_t elements;
+        size_t max_fill;
 
         public:
-            Hashmap(size_t capa=256):
+            Hashmap(size_t capa=1024):
                 bucket(capa),
-                capacity(capa)
-                {};
-            //Hashmap(const Hashmap&);
+                capacity(capa),
+                elements(0)
+                {max_fill = (capacity/5)*4;};
 
             V* get(const K &key)
             {
                 size_t h = std::hash<K>()(key)%capacity;
-                std::forward_list<Entry> loc = bucket[h];
                 for(auto& entry:bucket[h])
                 {
                     if(entry._key == key)
@@ -48,8 +53,11 @@ namespace tme2
 
             bool put(const K &key, const V &value)
             {
+                if(elements >= max_fill)
+                {
+                    grow();
+                }
                 size_t h = std::hash<K>()(key)%capacity;
-
                 for(auto& entry:bucket[h])
                 {
                     if(entry._key == key)
@@ -58,16 +66,8 @@ namespace tme2
                         return true;
                     }
                 }
-                /*for(auto it=loc.begin(); it!=loc.end(); ++it)
-                {
-                    if(it->_key == key)
-                    {
-                        std::cout<<"key found"<<std::endl;
-                        it->_value = value;
-                        return true;
-                    }
-                }*/
                 bucket[h].push_front(Entry(key, value));
+                elements++;
                 return false;
             }
 
@@ -83,6 +83,11 @@ namespace tme2
                 }
                 bucket = tmp.bucket;
                 capacity*=2;
+            }
+
+            size_t get_elements()
+            {
+                return elements;
             }
 
 
