@@ -11,8 +11,7 @@ void Banque::transfert(size_t deb, size_t cred, unsigned int val) {
 	Compte & crediteur = comptes[cred];
 	recursive_mutex & mutex_d = debiteur.getMutex();
 	recursive_mutex & mutex_c = crediteur.getMutex();
-	mutex_d.lock();
-	mutex_c.lock();
+	lock(mutex_d, mutex_c);
 	if (debiteur.debiter(val)) {
 		crediteur.crediter(val);
 	}
@@ -25,15 +24,26 @@ size_t Banque::size() const {
 bool Banque::comptabiliser (int attendu) const {
 	int bilan = 0;
 	int id = 0;
-	for (const auto & compte : comptes) {
+	for (auto & compte : comptes) {
+		recursive_mutex &c = compte.getMutex();
+		c.lock();
 		if (compte.getSolde() < 0) {
 			cout << "Compte " << id << " en négatif : " << compte.getSolde() << endl;
+			getchar();
 		}
 		bilan += compte.getSolde();
+		
 		id++;
+	}
+
+	for(auto & compte:comptes)
+	{
+		recursive_mutex &c = compte.getMutex();
+		c.unlock();
 	}
 	if (bilan != attendu) {
 		cout << "Bilan comptable faux : attendu " << attendu << " obtenu : " << bilan << endl;
+		getchar();
 	}
 	return bilan == attendu;
 }

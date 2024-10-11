@@ -7,7 +7,7 @@
 using namespace std;
 
 const int NB_THREAD = 10;
-const int MAX = 4;
+const int MAX = 100;
 const int MAX_SOLDE = 200;
 
 void start_thread(pr::Banque& bq)
@@ -17,7 +17,8 @@ void start_thread(pr::Banque& bq)
 	std::uniform_int_distribution<int> id(0, bq.size()-1);
 	std::uniform_int_distribution<int> mt(0, MAX_SOLDE-1);
 	mutex affichage;
-	for(int i = 0; i < 1000; ++i)
+	
+	for(int i = 0; i < 100000; ++i)
 	{
 		int id_deb = id(gen);
 		int id_cred = id(gen);
@@ -28,16 +29,27 @@ void start_thread(pr::Banque& bq)
 	}
 }
 
+void thread_compta(pr::Banque& bq, bool& stop_tk)
+{
+	int attendu = bq.size()*MAX_SOLDE;
+	while(!stop_tk)
+	{
+		bq.comptabiliser(attendu);
+		std::this_thread::sleep_for(10ms);
+	}
+	return;
+}
+
 int main () {
 	std::srand(std::time(nullptr));
-
 	int N = std::rand() % MAX + 2;
-
 	pr::Banque bq((size_t)N, (size_t)MAX_SOLDE);
-	int attendu = N*MAX_SOLDE;
+	bool stop_token = false;
+
+	thread comptabilite(&thread_compta, std::ref(bq), std::ref(stop_token));
+	comptabilite.detach();
 
 	vector<thread> threads;
-	// TODO : creer des threads qui font ce qui est demandé
 	for(int i  = 0; i<10; ++i)
 	{
 		threads.emplace_back(&start_thread, std::ref(bq));
@@ -47,8 +59,7 @@ int main () {
 		t.join();
 	}
 
-	bq.comptabiliser(attendu);
+	stop_token = true;	//arrête l'exécution du thread de comptabilité
 
-	// TODO : tester solde = NB_THREAD * JP
 	return 0;
 }

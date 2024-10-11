@@ -31,4 +31,9 @@ recursive_mutex & Compte::getMutex()
 	return m;
 }
 
+recursive_mutex & Compte::getMutex() const
+{
+	return m;
+}
+
 }
