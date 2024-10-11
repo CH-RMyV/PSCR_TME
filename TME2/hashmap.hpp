@@ -8,11 +8,6 @@ namespace tme2
     template <typename K, typename V>
     class Hashmap
     {
-        class iterator
-        {
-
-        };
-
         class Entry
         {
             public:
@@ -25,11 +20,55 @@ namespace tme2
         };
 
         typedef std::vector<std::forward_list<Entry>> buckets_t; 
+        typedef std::forward_list<Entry> list_t;
 
         buckets_t bucket;
         size_t capacity;
         size_t elements;
         size_t max_fill;
+
+        class iterator
+        {
+            private:
+                buckets_t::iterator vit;    //pointeur vers la liste actuelle
+                list_t::iterator lit;       //pointeur vers l'élément de la liste actuelle
+                buckets_t::iterator back;   //dernière liste dans bucket
+
+            public:
+                iterator(buckets_t &bucket):
+                    vit(bucket.begin()),
+                    back(bucket.end()),
+                    lit(vit->begin())
+                    {};
+                
+                iterator(const iterator &o):
+                    vit(o.vit),
+                    back(o.back),
+                    lit(o.lit)
+                    {};
+
+                iterator& operator++()
+                {
+                    ++lit;
+                    if(lit==vit->end())
+                    {
+                        for(; vit->empty() && vit != back; ++vit);
+                        lit = vit->begin();
+                    }
+
+                    return lit;
+                }
+
+                bool operator!=(const iterator &o)
+                {
+                    return vit!=o.vit || lit!=o.lit;
+                }
+
+                Entry& operator*()
+                {
+                    return &lit;
+                }
+        };
 
         public:
             Hashmap(size_t capa=1024):

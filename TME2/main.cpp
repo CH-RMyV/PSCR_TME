@@ -19,7 +19,7 @@ template <typename iterator, typename T>
 size_t count_if_equal(iterator begin, iterator end, const T &val)
 {
 	size_t i = 0;
-	for(;begin!=end;++begin)i+=(*begin==val);
+	for(;begin!=end;++begin) i+=(*begin==val);
 	return i;
 }
 
