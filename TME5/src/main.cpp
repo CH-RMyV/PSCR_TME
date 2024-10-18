@@ -1,6 +1,8 @@
 #include "Vec3D.h"
 #include "Rayon.h"
 #include "Scene.h"
+#include "Queue.h"
+#include "Pool.h"
 #include <iostream>
 #include <algorithm>
 #include <fstream>
@@ -100,6 +102,49 @@ void exportImage(const char * path, size_t width, size_t height, Color * pixels)
 
 // NB : en francais pour le cours, preferez coder en english toujours.
 // pas d'accents pour eviter les soucis d'encodage
+
+class pixelJob : Job
+{
+	int x, y;
+	Scene sce;
+	const Scene::screen_t scr;
+	vector<Vec3D> lights;
+	Color* pixels;
+
+	void execute(int x, int y, Scene& sce, const Scene::screen_t& scr, vector<Vec3D> lights, Color* pixels)
+	{
+		auto& screenPoint = scr[x][y];
+		Rayon ray(sce.getCameraPos(), screenPoint);
+		int targetSphere = findClosestInter(sce, ray);
+
+		if(targetSphere == -1)
+		{
+			return;
+		}
+		else
+		{
+			const Sphere& obj = *(sce.begin() + targetSphere);
+			Color finalcolor = computeColor(obj, ray, sce.getCameraPos(), lights);
+			Color& pixel = pixels[y*sce.getHeight()+x];
+			pixel = finalcolor;
+		}
+	}
+	public:
+		pixelJob(int x, int y, Scene& sce, const Scene::screen_t& scr, vector<Vec3D> lights, Color* pixels):
+			x(x),
+			y(y),
+			sce(sce),
+			scr(scr),
+			lights(lights),
+			pixels(pixels)
+			{}
+
+		void run()
+		{
+			execute(x, y, ref(sce), ref(scr), lights, pixels);
+		}
+	};
+
 
 int main () {
 

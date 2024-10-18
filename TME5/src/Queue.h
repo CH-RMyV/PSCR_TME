@@ -3,6 +3,8 @@
 
 #include <cstdlib>
 #include <mutex>
+#include <condition_variable>
+#include <cstring>
 
 namespace pr {
 
@@ -14,6 +16,8 @@ class Queue {
 	size_t begin;
 	size_t sz;
 	mutable std::mutex m;
+	std::condition_variable condFull, condEmpty;
+	bool blocked=true;
 
 	// fonctions private, sans protection mutex
 	bool empty() const {
@@ -33,22 +37,26 @@ public:
 	}
 	T* pop() {
 		std::unique_lock<std::mutex> lg(m);
-		if (empty()) {
-			return nullptr;
+		while (empty() && blocked) {
+			condEmpty.wait(lg);
 		}
+		if(empty()) return nullptr;
 		auto ret = tab[begin];
 		tab[begin] = nullptr;
 		sz--;
 		begin = (begin + 1) % allocsize;
+		condFull.notify_one();
 		return ret;
 	}
 	bool push(T* elt) {
 		std::unique_lock<std::mutex> lg(m);
-		if (full()) {
-			return false;
+		while (full() && blocked) {
+			condFull.wait(lg);
 		}
+		if(full()) return false;
 		tab[(begin + sz) % allocsize] = elt;
 		sz++;
+		condEmpty.notify_one();
 		return true;
 	}
 	~Queue() {
@@ -58,6 +66,10 @@ public:
 			delete tab[ind];
 		}
 		delete[] tab;
+	}
+	void setBlocking(bool block)
+	{
+		blocked = block;
 	}
 };
 
