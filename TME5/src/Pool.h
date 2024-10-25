@@ -11,7 +11,7 @@ namespace pr {
 		Queue<Job> queue;
 		std::vector<std::thread> threads;
 	public:
-		static void worker(Queue<Job> &q);
+		static void worker(Queue<Job> &q, int n);
 		Pool(int qsize) ;
 		void start (size_t nbthread);
 		void submit (Job * job) ;
@@ -23,11 +23,14 @@ namespace pr {
 		queue(qsize)
 		{}
 
-	void Pool::worker(Queue<Job> &q)
+	void Pool::worker(Queue<Job> &q, int n)
 	{
+		//printf("created thread %d\n", n);
 		while(true)
 		{
+			//printf("Process %d waiting for task\n", n);
 			Job* job = q.pop();
+			//printf("Process %d got task\n", n);
 			if(job == nullptr) return;
 			job->run();
 			delete job;
@@ -38,7 +41,7 @@ namespace pr {
 	{
 		for(size_t i=0; i<nbThread; ++i)
 		{
-			threads.emplace_back(worker, std::ref(queue));
+			threads.emplace_back(worker, std::ref(queue), i);
 		}
 	}
 

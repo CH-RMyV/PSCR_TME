@@ -53,7 +53,7 @@ int findClosestInter(const Scene & scene, const Rayon & ray) {
 
 // Calcule l'angle d'incidence du rayon à la sphere, cumule l'éclairage des lumières
 // En déduit la couleur d'un pixel de l'écran.
-Color computeColor(const Sphere & obj, const Rayon & ray, const Vec3D & camera, std::vector<Vec3D> & lights) {
+Color computeColor(const Sphere & obj, const Rayon & ray, const Vec3D & camera, const std::vector<Vec3D> & lights) {
 	Color finalcolor = obj.getColor();
 
 	// calcul du rayon et de sa normale a la sphere
@@ -103,20 +103,19 @@ void exportImage(const char * path, size_t width, size_t height, Color * pixels)
 // NB : en francais pour le cours, preferez coder en english toujours.
 // pas d'accents pour eviter les soucis d'encodage
 
-class pixelJob : Job
+class pixelJob : public Job
 {
 	int x, y;
-	Scene sce;
-	const Scene::screen_t scr;
-	vector<Vec3D> lights;
+	Scene& sce;
+	const Scene::screen_t& scr;
+	const vector<Vec3D>& lights;
 	Color* pixels;
 
-	void execute(int x, int y, Scene& sce, const Scene::screen_t& scr, vector<Vec3D> lights, Color* pixels)
+	void execute(int x, int y, const Scene& sce, const Scene::screen_t& scr, const vector<Vec3D>& lights, Color* pixels)
 	{
-		auto& screenPoint = scr[x][y];
+		auto screenPoint = scr[x][y];
 		Rayon ray(sce.getCameraPos(), screenPoint);
 		int targetSphere = findClosestInter(sce, ray);
-
 		if(targetSphere == -1)
 		{
 			return;
@@ -124,13 +123,11 @@ class pixelJob : Job
 		else
 		{
 			const Sphere& obj = *(sce.begin() + targetSphere);
-			Color finalcolor = computeColor(obj, ray, sce.getCameraPos(), lights);
-			Color& pixel = pixels[y*sce.getHeight()+x];
-			pixel = finalcolor;
+			pixels[y*sce.getHeight()+x] = computeColor(obj, ray, sce.getCameraPos(), lights);
 		}
 	}
 	public:
-		pixelJob(int x, int y, Scene& sce, const Scene::screen_t& scr, vector<Vec3D> lights, Color* pixels):
+		pixelJob(int x, int y, Scene& sce, const Scene::screen_t& scr, const vector<Vec3D>& lights, Color* pixels):
 			x(x),
 			y(y),
 			sce(sce),
@@ -141,8 +138,11 @@ class pixelJob : Job
 
 		void run()
 		{
-			execute(x, y, ref(sce), ref(scr), lights, pixels);
+			execute(x, y, sce, scr, lights, pixels);
 		}
+
+		~pixelJob()
+		{}
 	};
 
 
@@ -170,8 +170,18 @@ int main () {
 	// Les couleurs des pixels dans l'image finale
 	Color * pixels = new Color[scene.getWidth() * scene.getHeight()];
 
-	// pour chaque pixel, calculer sa couleur
+	Pool* workers = new Pool(1000000);
+
+	workers->start(16);
+
 	for (int x =0 ; x < scene.getWidth() ; x++) {
+		//workers->submit(new pixelJob(x, scene, screen, lights, pixels));
+		for(int y=0; y < scene.getHeight(); ++y){
+			workers->submit(new pixelJob(x, y, scene, screen, lights, pixels));
+		}
+	}
+
+	/*for (int x =0 ; x < scene.getWidth() ; x++) {
 		for (int  y = 0 ; y < scene.getHeight() ; y++) {
 			// le point de l'ecran par lequel passe ce rayon
 			auto & screenPoint = screen[y][x];
@@ -194,7 +204,9 @@ int main () {
 			}
 
 		}
-	}
+	}*/
+
+	workers->stop();
 
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	    std::cout << "Total time "
@@ -202,6 +214,8 @@ int main () {
 	              << "ms.\n";
 
 	exportImage("toto.ppm",scene.getWidth(), scene.getHeight() , pixels);
+
+	delete[] pixels;
 
 	return 0;
 }

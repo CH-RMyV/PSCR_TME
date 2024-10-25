@@ -36,26 +36,28 @@ public:
 		return sz;
 	}
 	T* pop() {
-		std::unique_lock<std::mutex> lg(m);
-		while (empty() && blocked) {
-			condEmpty.wait(lg);
+		T* ret;
+		{
+			
+			std::unique_lock<std::mutex> lg(m);
+			condEmpty.wait(lg, [this]{return !(empty() && blocked);});
+			if(!blocked && empty()) return nullptr;
+			ret = tab[begin];
+			tab[begin] = nullptr;
+			sz--;
+			begin = (begin + 1) % allocsize;
 		}
-		if(empty()) return nullptr;
-		auto ret = tab[begin];
-		tab[begin] = nullptr;
-		sz--;
-		begin = (begin + 1) % allocsize;
 		condFull.notify_one();
 		return ret;
 	}
 	bool push(T* elt) {
-		std::unique_lock<std::mutex> lg(m);
-		while (full() && blocked) {
-			condFull.wait(lg);
+		{
+			std::unique_lock<std::mutex> lg(m);
+			condFull.wait(lg, [this]{return !(full() && blocked);});
+			if(full() && !blocked) return false;
+			tab[(begin + sz) % allocsize] = elt;
+			sz++;
 		}
-		if(full()) return false;
-		tab[(begin + sz) % allocsize] = elt;
-		sz++;
 		condEmpty.notify_one();
 		return true;
 	}
@@ -69,7 +71,13 @@ public:
 	}
 	void setBlocking(bool block)
 	{
+		std::unique_lock<std::mutex> lg(m);
 		blocked = block;
+		if(!block)
+		{
+			condEmpty.notify_all();
+			condFull.notify_all();
+		}
 	}
 };
 
