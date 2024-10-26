@@ -57,5 +57,6 @@
         "stop_token": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "makefile.configureOnOpen": true
 }
