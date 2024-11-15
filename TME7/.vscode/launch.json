@@ -4,13 +4,12 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "(gdb) Lancer",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/Ex1",
-            "args": ["test1 test2 test3 test4"],
+            "args": ["test1", "test2", "\\|", "test3", "test4"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
