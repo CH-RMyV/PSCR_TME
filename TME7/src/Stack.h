@@ -39,11 +39,13 @@ namespace pr
 		{
 			// bloquer si vide
 			sem_wait(&take_permits);
+			sem_wait(&general_mutex);
 			if(sz<=0)
 			{
 				return (T)NULL;
 			}
 			T toret = tab[--sz];
+			sem_post(&general_mutex);
 			sem_post(&give_permits);
 			return toret;
 		}
@@ -56,7 +58,9 @@ namespace pr
 			}
 			// bloquer si plein
 			sem_wait(&give_permits);
+			sem_wait(&general_mutex);
 			tab[sz++] = elt;
+			sem_post(&general_mutex);
 			sem_post(&take_permits);
 		}
 

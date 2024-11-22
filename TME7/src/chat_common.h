@@ -25,7 +25,7 @@
 
 #define MAX_MESS 50
 #define MAX_USERS 10
-#define TAILLE_MESS 10
+#define TAILLE_MESS 1024
 
 struct message {
   long type;
