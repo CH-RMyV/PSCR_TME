@@ -36,7 +36,7 @@ struct myshm {
   int read; /* nombre de messages retransmis par le serveur */
   int write; /* nombre de messages non encore retransmis par le serveur */
   int nb; /* nombre total de messages emis */
-  sem_t sem;
+  sem_t requests, general_mutex;
   struct message messages[MAX_MESS];
 };
 
