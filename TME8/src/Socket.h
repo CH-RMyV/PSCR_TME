@@ -1,31 +1,46 @@
-#ifndef SRC_SOCKET_H_
-#define SRC_SOCKET_H_
-
-#include <netinet/ip.h>
+#pragma once
+#include <sys/socket.h>
 #include <string>
-#include <iosfwd>
+#include <iostream>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
-namespace pr {
+#define PAQUET_SIZE 65535
 
-class Socket {
-	int fd;
+namespace pr
+{
+    std::ostream &operator<<(std::ostream &o, struct sockaddr_in *addr)
+    {
+        /*Résolution du nom d'hôte : getnameinfo(struct sockaddr* addr, socklen_t len,
+                                                char* host, size_t hostlen, char* service,
+                                                size_t servlen, int flags)*/
 
-public :
-	Socket():fd(-1){}
-	Socket(int fd):fd(fd){}
+        char host[1024];
+        if (getnameinfo((sockaddr *)addr, sizeof(struct sockaddr_in), host, 1024, nullptr, 0, 0) != 0)
+        {
+            std::cerr << "Erreur de requête" << std::endl;
+        }
 
-	// tente de se connecter à l'hôte fourni
-	void connect(const std::string & host, int port);
-	void connect(in_addr ipv4, int port);
+        o << host << std::endl;
+        o << inet_ntoa(addr->sin_addr) << " : " << ntohs(addr->sin_port) << std::endl;
+    }
 
-	bool isOpen() const {return fd != -1;}
-	int getFD() { return fd ;}
+    class Socket
+    {
+        int fd;
 
-	void close();
-};
+    public:
+        Socket() : fd(-1) {}
+        Socket(int fd) : fd(fd) {}
 
-std::ostream & operator<< (std::ostream & os, struct sockaddr_in * addr);
+        void connect(const std::string &host, int port);
+        void connect(in_addr ip, int port);
 
+        bool isOpen() const { return fd != -1; }
+        int getFD() const { return fd; }
+
+        void close();
+    };
 }
-
-#endif /* SRC_SOCKET_H_ */
